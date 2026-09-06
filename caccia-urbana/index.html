@@ -377,6 +377,7 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;min-height:36px
     <div class="box"><div class="lbl"><span>Energia</span><span id="hud-stamina-t"></span></div><div class="meter" id="hud-stamina"><i></i></div></div>
     <div class="box"><div class="lbl"><span>Rumore</span><span id="hud-noise-t">silenzio</span></div><div class="meter noise" id="hud-noise"><i style="width:0"></i></div></div>
     <div class="box"><div class="lbl"><span id="hud-ability-name">Abilità (Q)</span><span id="hud-ability-t"></span></div><div class="meter" id="hud-ability"><i></i></div></div>
+    <div class="box" id="hud-morph-box"><div class="lbl"><span id="hud-morph-name">Travestimento (T)</span><span id="hud-morph-t"></span></div><div class="meter" id="hud-morph"><i></i></div></div>
     <div class="hudbtns"><button class="btn" id="hb-help" title="Comandi, regole e accessibilità">? Comandi</button><button class="btn" id="hb-map" title="Mappa dettagliata (M)">Mappa</button><button class="btn" id="hb-view" title="Cambia tipo di visuale (V)">Visuale</button></div>
   </div>
   <div class="tr">
@@ -402,6 +403,8 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;min-height:36px
     <div class="mbtn" data-act="crouch">Abbassati</div>
     <div class="mbtn" data-act="interact">Usa</div>
     <div class="mbtn" data-act="ability">Abilità</div>
+    <div class="mbtn" data-act="morph">Cosa</div>
+    <div class="mbtn" data-act="unmask">Smaschera</div>
     <div class="mbtn big" data-act="mark">Marca</div>
   </div>
 </div>
@@ -443,6 +446,8 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;min-height:36px
         <b>Vittoria</b><span>Le prede vincono se almeno una resta libera allo scadere del tempo; i cacciatori vincono se le catturano tutte.</span>
         <b>Energia</b><span>Correre consuma energia; camminare o stare fermi la ricarica. Correre fa rumore.</span>
         <b>Esca</b><span>Ogni preda ha una sola esca sonora per partita (Q): produce un rumore a distanza.</span>
+        <b>Travestimento</b><span>Una preda ferma può trasformarsi in un oggetto del quartiere (T): bidone, cassa, cono stradale o pianta in vaso. Dura al massimo 45 secondi, poi serve una ricarica di 20. Restano sempre visibili tre dettagli: i piedi che spuntano, un leggero respiro e un ciuffo di capelli. Muovendosi si torna umani. Una preda travestita non può essere marcata: va prima smascherata.</span>
+        <b>Smascherare</b><span>Il cacciatore inquadra un oggetto sospetto entro 9 metri per 2 secondi e preme R (pulsante «Smaschera» su telefono). Se era una preda, torna umana e resta bloccata per un attimo, senza potersi ritrasformare per 30 secondi: a quel punto va marcata normalmente. Se era un vero oggetto, si perde solo un po' di tempo.</span>
         <b>Scansione</b><span>I cacciatori hanno una ricerca temporanea (Q) con lunga ricarica: per pochi secondi segnala zone approssimative dove qualcuno si è mosso di recente.</span>
         <b>Zone instabili</b><span>Una preda ferma troppo a lungo rende la sua zona meno sicura: i cacciatori ricevono un'indicazione approssimativa. Nessuna posizione esatta viene mai rivelata.</span>
         <b>Rotazione</b><span>Alla partita successiva i ruoli ruotano, così nessuno è sempre cacciatore o sempre preda.</span>
@@ -451,7 +456,7 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;min-height:36px
     <div class="tabpane" data-pane="comandi" hidden>
       <div class="kv" id="help-keys"></div>
       <h3>Dispositivi mobili</h3>
-      <div class="kv"><b>Levetta sinistra</b><span>movimento</span><b>Trascina a destra</b><span>orienta la visuale</span><b>Pulsanti</b><span>Corri, Abbassati, Usa, Abilità, Marca (cattura)</span><b>Comandi / Mappa / Visuale</b><span>pulsanti in alto a sinistra: questa guida, mappa dettagliata, cambio di visuale</span><b>☰</b><span>pausa e impostazioni</span></div>
+      <div class="kv"><b>Levetta sinistra</b><span>movimento</span><b>Trascina a destra</b><span>orienta la visuale</span><b>Pulsanti</b><span>Corri, Abbassati, Usa, Abilità, Cosa (travestimento, prede), Smaschera (cacciatori), Marca (cattura)</span><b>Comandi / Mappa / Visuale</b><span>pulsanti in alto a sinistra: questa guida, mappa dettagliata, cambio di visuale</span><b>☰</b><span>pausa e impostazioni</span></div>
     </div>
     <div class="tabpane" data-pane="acc" hidden>
       <p class="sub">Dalle Impostazioni puoi: rimappare i tasti, regolare la sensibilità, attivare una modalità per daltonismo (le squadre sono sempre indicate anche da forme ◆ ● e testo), usare caratteri più leggibili, alzare il contrasto, ridurre le animazioni, disattivare l'oscillazione della telecamera, mostrare i sottotitoli degli avvisi sonori, regolare separatamente i volumi, ingrandire l'interfaccia. Il gioco è comprensibile anche senza audio: rumore, pericolo e stato della partita hanno sempre un indicatore visivo.</p>
@@ -580,9 +585,11 @@ const RULES = {
   abilityCooldownHunter: 60, scanDuration: 5, scanRadius: 40,
   decoyDelay: 2, decoyDistance: 14,
   idleUnsafeSec: 75, pinsMax: 3,
+  disguiseMaxSec: 45, disguiseCooldown: 20, unmaskSeconds: 2, unmaskStun: 2.5, unmaskLockout: 30,
   worldSize: 320
 };
 const BOT_NAMES = ['Aurora','Matteo','Leila','Tommaso','Giada','Samir','Chiara','Davide','Noemi','Luca','Sara','Karim','Elena','Marco','Ines','Pietro','Amira','Giulia','Omar','Bianca','Diego','Sofia','Yuri','Marta'];
+const DISGUISE_NAMES = { bidone: 'un bidone', cassa: 'una cassa', cono: 'un cono stradale', vaso: 'una pianta in vaso' };
 const QUARTER_NAMES = { NW: 'centro storico', NE: 'quartiere moderno', SW: 'zona residenziale', SE: 'area industriale' };
 
 /* ------------------------------- Utilità -------------------------------- */
@@ -852,7 +859,7 @@ class CollisionManager {
   }
   /* percorre le celle attraversate dal segmento; restituisce il primo t di impatto (1 = libero) */
   raycast(ax, ay, az, bx, by, bz, ignoreNonSolid = true) {
-    const dx = bx - ax, dy = by - ay, dz = bz - az; let best = 1;
+    const dx = bx - ax, dy = by - ay, dz = bz - az; let best = 1; let hit = null;
     const st = ++this.stamp;
     let cx = this._ci(ax), cz = this._ci(az); const ex = this._ci(bx), ez = this._ci(bz);
     const sx = dx > 0 ? 1 : -1, sz = dz > 0 ? 1 : -1;
@@ -861,13 +868,13 @@ class CollisionManager {
     let tmx = Math.abs(dx) < 1e-9 ? Infinity : (bxEdge - ax) / dx, tmz = Math.abs(dz) < 1e-9 ? Infinity : (bzEdge - az) / dz;
     for (let guard = 0; guard < 200; guard++) {
       const c = this.cells[cx * this.n + cz];
-      for (let i = 0; i < c.length; i++) { const b = c[i]; if (b.st === st) continue; b.st = st; if (ignoreNonSolid && !b.solid && !b.ramp) continue; const t = this._segBox(ax, ay, az, dx, dy, dz, b); if (t >= 0 && t < best) best = t; }
+      for (let i = 0; i < c.length; i++) { const b = c[i]; if (b.st === st) continue; b.st = st; if (ignoreNonSolid && !b.solid && !b.ramp) continue; const t = this._segBox(ax, ay, az, dx, dy, dz, b); if (t >= 0 && t < best) { best = t; hit = b; } }
       if (cx === ex && cz === ez) break;
       if (Math.min(tmx, tmz) > best) break;
       if (tmx < tmz) { cx += sx; tmx += tdx; } else { cz += sz; tmz += tdz; }
       if (cx < 0 || cz < 0 || cx >= this.n || cz >= this.n) break;
     }
-    return best;
+    this.lastHitBox = hit; return best;
   }
   hasLineOfSight(ax, ay, az, bx, by, bz) { return this.raycast(ax, ay, az, bx, by, bz) >= 0.999; }
 }
@@ -1689,6 +1696,19 @@ const AvatarBuilder = {
     r.build = pick(O.build); r.height = Math.round(rand(1.6, 1.9) * 100) / 100; r.skin = randInt(0, this.SKIN.length - 1); r.face = pick(O.face); r.hairStyle = pick(O.hairStyle); r.hairColor = pick(this.HAIR); r.beard = Math.random() < 0.3;
     r.glasses = Math.random() < 0.6 ? 'nessuno' : pick(O.glasses); r.hat = Math.random() < 0.55 ? 'nessuno' : pick(O.hat); r.scarf = Math.random() < 0.25; r.top = pick(O.top); r.topColor = pick(this.CLOTH); r.jacket = pick(O.jacket); r.jacketColor = pick(this.CLOTH); r.pants = pick(O.pants); r.pantsColor = pick(this.CLOTH); r.shoesColor = pick(['#1b1b1b', '#fdfefe', '#6d4c41', '#c0392b', '#2980b9']); r.bag = pick(O.bag); r.bagColor = pick(this.CLOTH); r.pose = pick(O.pose); return r;
   },
+  /* travestimento da oggetto: conserva tre dettagli rivelatori (piedi, ciuffo, respiro animato dal personaggio) */
+  buildDisguise(kind, opts) {
+    opts = this.sanitize(opts); const G = this.geos(); const g = new THREE.Group();
+    const mk = (geo, color, sx, sy, sz, x, y, z) => { const m = new THREE.Mesh(G[geo], this.material(color)); m.scale.set(sx, sy, sz); m.position.set(x, y, z); m.castShadow = true; g.add(m); return m; };
+    const hair = opts.hat !== 'nessuno' ? opts.topColor : opts.hairColor;
+    if (kind === 'bidone') { mk('cyl', '#44604a', 0.62, 1.0, 0.62, 0, 0.5, 0); const lid = mk('cyl', '#3a4f3f', 0.68, 0.08, 0.68, 0.06, 1.05, 0.03); lid.rotation.z = 0.14; mk('sphere', hair, 0.2, 0.1, 0.2, -0.1, 1.04, 0.05); }
+    else if (kind === 'cassa') { mk('box', '#a0784a', 1.0, 0.95, 1.0, 0, 0.53, 0); mk('box', '#6b4a2b', 1.04, 0.06, 0.1, 0, 0.5, 0.51); mk('box', '#6b4a2b', 0.1, 0.06, 1.04, 0.51, 0.5, 0); mk('sphere', hair, 0.18, 0.09, 0.18, 0.3, 1.02, 0.2); }
+    else if (kind === 'cono') { mk('cone', '#e8641b', 0.6, 1.0, 0.6, 0, 0.56, 0); mk('cyl', '#f4f4f4', 0.44, 0.09, 0.44, 0, 0.62, 0); mk('box', '#e8641b', 0.75, 0.06, 0.75, 0, 0.09, 0); mk('sphere', hair, 0.13, 0.08, 0.13, 0, 1.08, 0); }
+    else { mk('cyl', '#a0522d', 0.62, 0.5, 0.62, 0, 0.3, 0); mk('sphere', '#3f7a36', 0.95, 0.85, 0.95, 0, 0.95, 0); mk('sphere', hair, 0.18, 0.1, 0.18, 0.26, 1.22, 0.12); }
+    // piedi che spuntano dalla base
+    mk('box', opts.shoesColor, 0.16, 0.1, 0.32, -0.17, 0.05, 0.26); mk('box', opts.shoesColor, 0.16, 0.1, 0.32, 0.17, 0.05, 0.26);
+    return { group: g, kind, phase: Math.random() * 6 };
+  },
   sanitize(o) { const d = this.defaults(); const out = Object.assign({}, d, o || {}); for (const k in this.OPTIONS) if (!this.OPTIONS[k].includes(out[k])) out[k] = d[k]; out.height = clamp(+out.height || 1.75, 1.6, 1.9); out.skin = clamp(Math.round(+out.skin) || 0, 0, this.SKIN.length - 1); for (const k of ['hairColor', 'topColor', 'jacketColor', 'pantsColor', 'shoesColor', 'bagColor']) if (!/^#[0-9a-f]{6}$/i.test(out[k])) out[k] = d[k]; out.beard = !!out.beard; out.scarf = !!out.scarf; return out; },
   build(opts) {
     opts = this.sanitize(opts); const G = this.geos(); const g = new THREE.Group();
@@ -1768,12 +1788,20 @@ class Character {
     this.visible = true;
   }
   get x() { return this.pos.x; } get z() { return this.pos.z; }
-  headPos() { return new THREE.Vector3(this.pos.x, this.pos.y + (this.crouch ? 1.1 : 1.6) * this.avatar.height / 1.75, this.pos.z); }
-  chestPos() { return new THREE.Vector3(this.pos.x, this.pos.y + (this.crouch ? 0.8 : 1.25) * this.avatar.height / 1.75, this.pos.z); }
+  headPos() { if (this.disguise) return new THREE.Vector3(this.pos.x, this.pos.y + 0.8, this.pos.z); return new THREE.Vector3(this.pos.x, this.pos.y + (this.crouch ? 1.1 : 1.6) * this.avatar.height / 1.75, this.pos.z); }
+  chestPos() { if (this.disguise) return new THREE.Vector3(this.pos.x, this.pos.y + 0.5, this.pos.z); return new THREE.Vector3(this.pos.x, this.pos.y + (this.crouch ? 0.8 : 1.25) * this.avatar.height / 1.75, this.pos.z); }
+  /* travestimento: sostituisce l'avatar con un oggetto (piedi, ciuffo e respiro restano visibili) */
+  setDisguise(kind) {
+    if (this.disguise) { this.game.scene.remove(this.disguise.group); this.disguise = null; }
+    if (kind) { this.disguise = AvatarBuilder.buildDisguise(kind, this.avatarOpts); this.disguise.group.position.copy(this.pos); this.disguise.group.rotation.y = this.yaw; this.game.scene.add(this.disguise.group); this.mesh.visible = false; this.vel.set(0, 0, 0); }
+    else this.mesh.visible = this.visible;
+  }
+  animateDisguise(dt) { const d = this.disguise; if (!d) return; d.group.position.copy(this.pos); d.group.rotation.y = this.yaw; const s = 1 + Math.sin(this.game.time * 2.4 + d.phase) * 0.022; d.group.scale.set(s, 1 + (s - 1) * 1.6, s); d.group.visible = this.visible; }
   setPosition(x, y, z) { this.pos.set(x, y, z); this.mesh.position.set(x, y, z); this.vy = 0; }
   setVisible(v) { this.visible = v; this.mesh.visible = v; }
   /* movimento con energia, collisioni, gravità, rumore e passi */
   move(dirX, dirZ, wantRun, wantCrouch, dt) {
+    if (this.disguise || this.game.time < (this.stunUntil || 0)) { dirX = 0; dirZ = 0; wantRun = false; }
     const coll = this.game.coll; const moving = (dirX * dirX + dirZ * dirZ) > 0.01;
     if (moving) { const l = Math.hypot(dirX, dirZ); dirX /= l; dirZ /= l; }
     this.crouch = wantCrouch; const canRun = wantRun && this.stamina > 1 && !wantCrouch && moving;
@@ -1797,10 +1825,10 @@ class Character {
     // passi
     if (this.speed > 0.3 && this.onGround) { const stride = this.running ? 1.5 : this.crouch ? 0.6 : 0.85; this.stepTimer += this.speed * dt; if (this.stepTimer >= stride) { this.stepTimer = 0; this.game.onFootstep(this); } }
     this.mesh.position.copy(this.pos); this.mesh.rotation.y = this.yaw;
-    this.avatar.animate(dt, this.speed, this.crouch, this.game.time);
+    this.avatar.animate(dt, this.speed, this.crouch, this.game.time); this.animateDisguise(dt);
   }
-  idleUpdate(dt) { this.avatar.animate(dt, 0, this.crouch, this.game.time); this.noise = lerp(this.noise, 0, clamp(dt * 6, 0, 1)); this.speed = 0; }
-  dispose() { this.game.scene.remove(this.mesh); }
+  idleUpdate(dt) { this.avatar.animate(dt, 0, this.crouch, this.game.time); this.animateDisguise(dt); this.noise = lerp(this.noise, 0, clamp(dt * 6, 0, 1)); this.speed = 0; }
+  dispose() { this.game.scene.remove(this.mesh); if (this.disguise) { this.game.scene.remove(this.disguise.group); this.disguise = null; } }
 }
 
 /* ======================================================================== */
@@ -1810,8 +1838,8 @@ class InputManager {
   constructor(canvas) {
     this.canvas = canvas; this.keys = new Set(); this.pressedQueue = new Set(); this.lookDX = 0; this.lookDY = 0; this.markHeld = false; this.locked = false;
     this.sens = 1; this.sensTouch = 1; this.invertY = false; this.enabled = false; this.touch = { active: false, jx: 0, jy: 0 }; this.mobileToggles = { run: false, crouch: false };
-    this.DEFAULT = { forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', crouch: 'ControlLeft', crouch2: 'KeyC', interact: 'KeyE', ability: 'KeyQ', pin: 'KeyF', scoreboard: 'Tab', pause: 'Escape', map: 'KeyM', view: 'KeyV' };
-    this.LABELS = { forward: 'Avanti', back: 'Indietro', left: 'Sinistra', right: 'Destra', run: 'Corri', crouch: 'Accovacciati', crouch2: 'Accovacciati (alt.)', interact: 'Interagisci', ability: 'Abilità speciale', pin: 'Segnalazione sulla mappa', scoreboard: 'Giocatori e punteggi', pause: 'Pausa', map: 'Mappa dettagliata', view: 'Cambia visuale' };
+    this.DEFAULT = { forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', crouch: 'ControlLeft', crouch2: 'KeyC', interact: 'KeyE', ability: 'KeyQ', pin: 'KeyF', scoreboard: 'Tab', pause: 'Escape', map: 'KeyM', view: 'KeyV', morph: 'KeyT', unmask: 'KeyR' };
+    this.LABELS = { forward: 'Avanti', back: 'Indietro', left: 'Sinistra', right: 'Destra', run: 'Corri', crouch: 'Accovacciati', crouch2: 'Accovacciati (alt.)', interact: 'Interagisci', ability: 'Abilità speciale', pin: 'Segnalazione sulla mappa', scoreboard: 'Giocatori e punteggi', pause: 'Pausa', map: 'Mappa dettagliata', view: 'Cambia visuale', morph: 'Travestimento (prede)', unmask: 'Smaschera (cacciatori)' };
     this.bind = Object.assign({}, this.DEFAULT, Storage.get('keys', {}));
     this.remapWaiting = null;
     window.addEventListener('keydown', (e) => {
@@ -1873,6 +1901,7 @@ class Player extends Character {
     const look = input.consumeLook(); this.camYaw -= look.dx; this.camPitch = clamp(this.camPitch + look.dy, -0.5, 1.1);
     const ax = input.axes(); let dx = 0, dz = 0;
     if (allowMove && (ax.x || ax.y)) { const s = Math.sin(this.camYaw), c = Math.cos(this.camYaw); dx = (ax.y * s - ax.x * c); dz = (ax.y * c + ax.x * s); }
+    if (this.disguise && (ax.x || ax.y)) { this.moveIntentT = (this.moveIntentT || 0) + dt; if (this.moveIntentT > 0.4) { this.moveIntentT = 0; this.game.setDisguise(this, null, 'mosso'); } } else this.moveIntentT = 0;
     this.move(dx, dz, input.heldRun(), input.heldCrouch(), dt);
     if (this.abilityCooldown > 0) this.abilityCooldown = Math.max(0, this.abilityCooldown - dt);
     // rotazione verso la telecamera quando il cacciatore sta marcando
@@ -1887,7 +1916,7 @@ class Player extends Character {
       if (!nobob && this.speed > 0.5) { this.bobT += dt * (this.running ? 11 : 7); pos.y += Math.sin(this.bobT) * 0.035; }
       camera.position.copy(pos); camera.lookAt(pos.clone().add(fwd)); this.mesh.visible = false; this.targetYaw = this.camYaw; return;
     }
-    this.mesh.visible = this.visible;
+    this.mesh.visible = this.visible && !this.disguise;
     const dist = mode === 'alta' ? 7 : this.camDist; const pitch = this.camPitch + (mode === 'alta' ? 0.45 : 0); const cp2 = Math.cos(pitch), sp2 = Math.sin(pitch);
     const pivot = head.clone(); pivot.y += 0.15;
     const dir = new THREE.Vector3(-Math.sin(this.camYaw) * cp2, sp2, -Math.cos(this.camYaw) * cp2); // dietro il personaggio
@@ -1950,6 +1979,7 @@ class BotController {
     if (t >= this.nextThink) { this.nextThink = t + this.S.think + rand(0, 0.15); try { if (this.bot.role === 'preda') this.thinkPrey(t); else this.thinkHunter(t); } catch (e) { console.warn('bot think', e); } }
     if (t < this.pauseUntil) { this.bot.move(0, 0, false, this.wantCrouch, dt); if (this.state === 'ascolto' || this.state === 'cattura' || this.state === 'controllo') this.lookAround(dt); return; }
     if (this.state === 'cattura' && this.target) { const dx = this.target.x - this.bot.x, dz = this.target.z - this.bot.z; this.bot.targetYaw = Math.atan2(dx, dz); const d = Math.hypot(dx, dz); if (d > RULES.captureRange * 0.7) this.followPath(dt); else this.bot.move(0, 0, false, false, dt); return; }
+    if (this.bot.disguise) { this.bot.move(0, 0, false, false, dt); return; }
     this.followPath(dt);
     if (this.state === 'nascosto') this.lookAround(dt);
   }
@@ -1992,6 +2022,9 @@ class BotController {
       if (g.pressuredIds.has(b.id)) { this.relocate(null, false); return; }
       const restless = t - this.hiddenSince > S.restless * rand(0.7, 1.3);
       if (restless && Math.random() < 0.35) { this.relocate(null, false); return; }
+      // travestimento: le prede esperte lo usano più spesso e solo quando sono ferme e non viste
+      if (!b.disguise && t > (b.disguiseCooldownUntil || 0) && !nearest && Math.random() < { principiante: 0.04, normale: 0.1, esperto: 0.2 }[b.skill]) { g.setDisguise(b, g.pickDisguiseKind(b)); return; }
+      if (b.disguise && b.skill === 'principiante' && Math.random() < 0.03) { g.setDisguise(b, null); } // errore: torna umano troppo presto
       if (b.skill === 'principiante' && Math.random() < 0.04) { this.wantCrouch = false; } // errore credibile: si alza
       return;
     }
@@ -2011,13 +2044,13 @@ class BotController {
   }
   _isLookingAtMe(h) { const b = this.bot; const fx = h.isLocal ? Math.sin(h.camYaw) : Math.sin(h.yaw), fz = h.isLocal ? Math.cos(h.camYaw) : Math.cos(h.yaw); const dx = b.x - h.x, dz = b.z - h.z; const d = Math.hypot(dx, dz) || 1; return (fx * dx + fz * dz) / d > 0.6; }
   flee(from) {
-    const b = this.bot, g = this.game; this.fleeFrom = { x: from.x, z: from.z }; this.setState('fuga'); this.wantRun = true; this.wantCrouch = false;
+    const b = this.bot, g = this.game; if (b.disguise) g.setDisguise(b, null); this.fleeFrom = { x: from.x, z: from.z }; this.setState('fuga'); this.wantRun = true; this.wantCrouch = false;
     // punto lontano dal cacciatore, preferibilmente coperto
     let best = null, bs = -Infinity;
     for (let k = 0; k < 24; k++) { const p = g.nav.randomReachable((q) => dist2(q.x, q.z, b.x, b.z) < 45 * 45 && dist2(q.x, q.z, b.x, b.z) > 18 * 18); if (!p) continue; const away = Math.sqrt(dist2(p.x, p.z, from.x, from.z)); const score = away + (1 - p.open) * 20 - Math.sqrt(dist2(p.x, p.z, b.x, b.z)) * 0.3; if (score > bs) { bs = score; best = p; } }
     if (best) this.goTo(best.x, best.z); else this.path = null;
   }
-  relocate(avoid, quiet) { const g = this.game; if (this.hideSpot) g.claimedSpots.delete(this.hideSpot); this.hideSpot = this.pickHideSpot(avoid); this.goTo(this.hideSpot.x, this.hideSpot.z); this.setState('riposizionamento'); this.wantCrouch = quiet; this.wantRun = false; }
+  relocate(avoid, quiet) { const g = this.game; if (this.bot.disguise) g.setDisguise(this.bot, null); if (this.hideSpot) g.claimedSpots.delete(this.hideSpot); this.hideSpot = this.pickHideSpot(avoid); this.goTo(this.hideSpot.x, this.hideSpot.z); this.setState('riposizionamento'); this.wantCrouch = quiet; this.wantRun = false; }
   /* --------------------------- CACCIATORE --------------------------- */
   buildPatrol() {
     const g = this.game; const pois = g.city.pois.filter((p) => p.quarter === this.zone); const spots = g.city.hidingSpots.filter((s) => g.city.quarterOf(s.x, s.z) === this.zone);
@@ -2040,8 +2073,12 @@ class BotController {
     // percezione: candidati visibili (prede e passanti: da lontano non si distinguono)
     const prey = g.chars.filter((c) => c.role === 'preda' && !c.captured && c.visible);
     const peds = g.peds;
-    const seenPrey = prey.filter((c) => this.canSee(c));
-    const suspects = seenPrey.concat(peds.filter((c) => this.canSee(c, 0.8) && (this.checked.get(c.id) || -1e9) < t - 60));
+    const seenPrey = prey.filter((c) => !c.disguise && this.canSee(c));
+    // oggetti sospetti: una preda travestita si nota solo da vicino, con una certa probabilità che dipende dall'abilità
+    if (!this.noticed) this.noticed = new Map();
+    for (const c of prey) { if (!c.disguise) continue; if (this.noticed.has(c.id) && t - this.noticed.get(c.id) < 40) continue; if (this.canSee(c, 0.55) && Math.random() < { principiante: 0.02, normale: 0.06, esperto: 0.14 }[b.skill]) { this.noticed.set(c.id, t); g.botTeamMessage(b, `Quell'oggetto vicino a ${g.zoneName(c.x, c.z)} mi sembra strano…`, c.x, c.z); } }
+    const disguised = prey.filter((c) => c.disguise && this.noticed.has(c.id) && t - this.noticed.get(c.id) < 40);
+    const suspects = seenPrey.concat(disguised, peds.filter((c) => this.canSee(c, 0.8) && (this.checked.get(c.id) || -1e9) < t - 60));
     // rumori
     const heard = g.noiseEvents.filter((n) => n.t > t - 2 && n.team !== 'cacciatore' && n.src !== b.id && dist2(n.x, n.z, b.x, b.z) < (n.level * 34 * S.hear) ** 2);
     const nearestSeen = seenPrey.length ? seenPrey.reduce((a, c) => dist2(b.x, b.z, c.x, c.z) < dist2(b.x, b.z, a.x, a.z) ? c : a) : null;
@@ -2082,6 +2119,12 @@ class BotController {
         // si avvicina a un sospetto per capire se è una preda o un passante
         const s = this.target; if (!s || (s.captured) || !s.visible) { this.setState('pattuglia'); this.path = null; return; }
         const d = Math.sqrt(dist2(b.x, b.z, s.x, s.z)); const see = this.canSee(s);
+        if (s.disguise) { // oggetto sospetto: si ferma, lo inquadra per 2 secondi e lo smaschera
+          if (d < 8 && see) { this.unmaskT = (this.unmaskT || 0) + (t - (this.unmaskLast || t)); this.unmaskLast = t; this.pauseUntil = t + 0.4; this.bot.targetYaw = Math.atan2(s.x - b.x, s.z - b.z); if (this.unmaskT >= RULES.unmaskSeconds) { this.unmaskT = 0; g.unmask(b, s); this.checked.set(s.id, 'preda'); this.lastSeen = { x: s.x, z: s.z }; this.lastSeenTime = t; this.setState('inseguimento'); } }
+          else { this.unmaskT = 0; this.unmaskLast = t; if (this.arrived() || !this.path) this.goTo(s.x, s.z); }
+          if (!see && t - this.stateSince > 12) { this.target = null; this.setState('pattuglia'); this.path = null; }
+          return;
+        }
         if (d < 9 && see) { if (s.role === 'preda') { this.checked.set(s.id, 'preda'); this.lastSeen = { x: s.x, z: s.z }; this.lastSeenTime = t; this.setState('inseguimento'); g.botTeamMessage(b, `È una preda, vicino a ${g.zoneName(s.x, s.z)}!`, s.x, s.z); } else { this.checked.set(s.id, t); this.target = null; this.setState('pattuglia'); this.path = null; } return; }
         if (!see && t - this.stateSince > 6) { this.checked.set(s.id, t); this.target = null; this.setState('pattuglia'); this.path = null; return; }
         if (this.arrived() || !this.path || (this.goal && dist2(this.goal.x, this.goal.z, s.x, s.z) > 9)) this.goTo(s.x, s.z);
@@ -2089,6 +2132,7 @@ class BotController {
       }
       case 'inseguimento': {
         const s = this.target; if (!s || s.captured) { this.target = null; this.setState('pattuglia'); this.path = null; return; }
+        if (s.disguise) { this.noticed.set(s.id, t); this.setState('controllo'); this.goTo(s.x, s.z); return; }
         const see = this.canSee(s); const d = Math.sqrt(dist2(b.x, b.z, s.x, s.z));
         if (see) { this.lastSeen = { x: s.x, z: s.z }; this.lastSeenTime = t; }
         if (see && d <= RULES.captureRange) { this.setState('cattura'); this.capProgress = 0; this.wantRun = false; return; }
@@ -2099,6 +2143,7 @@ class BotController {
       }
       case 'cattura': {
         const s = this.target; if (!s || s.captured) { this.target = null; this.setState('pattuglia'); this.path = null; return; }
+        if (s.disguise) { this.capProgress = 0; this.noticed.set(s.id, t); this.setState('controllo'); return; }
         const see = this.canSee(s); const d = Math.sqrt(dist2(b.x, b.z, s.x, s.z));
         if (!see || d > RULES.captureRange) { this.capProgress = 0; this.setState('inseguimento'); if (see) { this.lastSeen = { x: s.x, z: s.z }; this.lastSeenTime = t; } this.goTo(s.x, s.z); return; }
         this.capProgress += (t - (this.capT || t)); this.capT = t; this.lastSeen = { x: s.x, z: s.z }; this.lastSeenTime = t;
@@ -2351,11 +2396,14 @@ class UIManager {
     e['hud-noise'].firstElementChild.style.width = Math.round(p.noise * 100) + '%'; e['hud-noise-t'].textContent = p.noise < 0.05 ? 'silenzio' : p.noise < 0.3 ? 'basso' : p.noise < 0.7 ? 'medio' : 'ALTO';
     if (p.role === 'cacciatore') { e['hud-ability-name'].textContent = `Scansione (${this.game.input.keyLabel(this.game.input.bind.ability)})`; const cd = p.abilityCooldown; e['hud-ability'].firstElementChild.style.width = (100 - cd / RULES.abilityCooldownHunter * 100) + '%'; e['hud-ability-t'].textContent = cd > 0 ? Math.ceil(cd) + ' s' : g.time < p.scanUntil ? 'ATTIVA' : 'pronta'; }
     else { e['hud-ability-name'].textContent = `Esca sonora (${this.game.input.keyLabel(this.game.input.bind.ability)})`; e['hud-ability'].firstElementChild.style.width = p.decoyUsed ? '0%' : '100%'; e['hud-ability-t'].textContent = p.decoyUsed ? 'usata' : 'disponibile'; }
+    const mb = $('hud-morph'), mt = $('hud-morph-t'), mn = $('hud-morph-name'); const t = g.time;
+    if (p.role === 'preda') { mn.textContent = `Travestimento (${this.game.input.keyLabel(this.game.input.bind.morph)})`; if (p.disguise) { const rem = Math.max(0, (p.disguiseUntil || 0) - t); mb.firstElementChild.style.width = (rem / RULES.disguiseMaxSec * 100) + '%'; mt.textContent = `${p.disguise.kind} · ${Math.ceil(rem)} s`; } else if (t < (p.disguiseCooldownUntil || 0)) { const cd = p.disguiseCooldownUntil - t; mb.firstElementChild.style.width = (100 - cd / RULES.disguiseCooldown * 100) + '%'; mt.textContent = `ricarica ${Math.ceil(cd)} s`; } else { mb.firstElementChild.style.width = '100%'; mt.textContent = p.speed > 0.5 ? 'fermati per usarlo' : 'disponibile'; } }
+    else { mn.textContent = `Smaschera (${this.game.input.keyLabel(this.game.input.bind.unmask)})`; const pr = p.unmaskKey ? clamp(p.unmaskProgress / RULES.unmaskSeconds, 0, 1) : 0; mb.firstElementChild.style.width = (pr * 100) + '%'; mt.textContent = p.unmaskKey ? (pr >= 1 ? 'PREMI ' + this.game.input.keyLabel(this.game.input.bind.unmask) : 'inquadra…') : 'inquadra un oggetto'; }
     const mates = g.chars.filter((c) => c.role === p.role && c !== p); e['hud-mates'].innerHTML = '<b>Compagni</b>' + mates.map((c) => `<span class="${c.captured ? 'cap' : ''}">${p.role === 'preda' ? '●' : '◆'} ${escapeHtml(c.name)}${c.isBot ? ' <span class="tag bot">bot</span>' : ''}</span>`).join('');
     e['hud-phase'].textContent = g.phase === 'prep' ? 'Preparazione: nasconditi' : g.phase === 'hunt' ? (p.role === 'preda' ? 'Caccia in corso: resta libero' : 'Caccia in corso: trova le prede') : g.phase === 'tutorial' ? 'Tutorial' : '';
     e.conn.textContent = g.net.online ? `Connessione: ${g.net.provider} (${g.net.latency ? Math.round(g.net.latency) + ' ms' : 'ok'})` : 'Connessione: locale (bot)';
     // mirino contestuale
-    const ring = e['ch-ring']; const tgt = p.markTarget; if (p.role === 'cacciatore' && !p.captured) { e.crosshair.style.display = ''; ring.style.strokeDashoffset = 126 - 126 * clamp(p.markProgress / RULES.captureSeconds, 0, 1); e.crosshair.classList.toggle('tgt', !!tgt); e['ch-lab'].textContent = tgt ? (p.markProgress > 0 ? `Riconoscimento ${Math.round(p.markProgress / RULES.captureSeconds * 100)}%` : 'Tieni premuto per marcare') : ''; }
+    const ring = e['ch-ring']; const tgt = p.markTarget; if (p.role === 'cacciatore' && !p.captured) { e.crosshair.style.display = ''; ring.style.strokeDashoffset = 126 - 126 * clamp(p.markProgress / RULES.captureSeconds, 0, 1); e.crosshair.classList.toggle('tgt', !!tgt || !!p.unmaskKey); ring.style.stroke = tgt ? '#f2b544' : '#4fb3ff'; if (!tgt && p.unmaskKey) { const pr = clamp(p.unmaskProgress / RULES.unmaskSeconds, 0, 1); ring.style.strokeDashoffset = 126 - 126 * pr; e['ch-lab'].textContent = pr >= 1 ? `Oggetto sospetto: premi ${this.game.input.keyLabel(this.game.input.bind.unmask)} per smascherare` : 'Oggetto: tieni inquadrato…'; } else e['ch-lab'].textContent = tgt ? (p.markProgress > 0 ? `Riconoscimento ${Math.round(p.markProgress / RULES.captureSeconds * 100)}%` : 'Tieni premuto per marcare') : ''; }
     else { e.crosshair.style.display = 'none'; }
     const it = g.interactHint; e.interact.hidden = !it; if (it) e.interact.textContent = it;
     this.drawMinimap();
@@ -2436,7 +2484,7 @@ class UIManager {
   renderResult(res) {
     const g = this.game; $('res-winner').textContent = res.winner === 'preda' ? '● Vincono le prede' : '◆ Vincono i cacciatori'; $('res-winner').style.color = res.winner === 'preda' ? 'var(--prey)' : 'var(--hunter)';
     $('res-sub').textContent = res.reason + (g.player.role === res.winner ? ' Hai vinto!' : ' Questa volta è andata così: alla prossima partita i ruoli ruotano.');
-    const row = (c) => `<tr><td>${c.role === 'preda' ? '●' : '◆'} ${escapeHtml(c.name)}${c.isBot ? ' <span class="tag bot">bot</span>' : ''}${c === g.player ? ' <b>(tu)</b>' : ''}</td><td>${c.role === 'preda' ? (c.captured ? 'catturata' : 'libera') + ' · ' + fmtTime(c.stats.timeFree) : c.stats.captures + ' catture'}</td><td>${Math.round(c.stats.distance)} m</td></tr>`;
+    const row = (c) => `<tr><td>${c.role === 'preda' ? '●' : '◆'} ${escapeHtml(c.name)}${c.isBot ? ' <span class="tag bot">bot</span>' : ''}${c === g.player ? ' <b>(tu)</b>' : ''}</td><td>${c.role === 'preda' ? (c.captured ? 'catturata' : 'libera') + ' · ' + fmtTime(c.stats.timeFree) + (c.stats.morphs ? ' · ' + c.stats.morphs + ' travestimenti' : '') : c.stats.captures + ' catture' + (c.stats.unmasks ? ' · ' + c.stats.unmasks + ' smascherati' : '')}</td><td>${Math.round(c.stats.distance)} m</td></tr>`;
     $('res-teams').innerHTML = `<div><h3>◆ Cacciatori</h3><table>${g.chars.filter((c) => c.role === 'cacciatore').map(row).join('')}</table></div><div><h3>● Prede</h3><table>${g.chars.filter((c) => c.role === 'preda').map(row).join('')}</table></div>`;
   }
   renderScoreboard() {
@@ -2510,12 +2558,13 @@ class SceneManager {
 /* Giocatore remoto: posizione interpolata dagli aggiornamenti di rete */
 class RemotePlayer extends Character {
   constructor(game, info) { super(game, Object.assign({ isRemote: true }, info)); this.buf = []; }
-  applyState(s) { this.buf.push({ t: performance.now() / 1000, x: s.x, y: s.y, z: s.z, yaw: s.yaw, crouch: !!s.c, run: !!s.r }); if (this.buf.length > 6) this.buf.shift(); }
+  applyState(s) { this.buf.push({ t: performance.now() / 1000, x: s.x, y: s.y, z: s.z, yaw: s.yaw, crouch: !!s.c, run: !!s.r, d: s.d || '' }); if (this.buf.length > 6) this.buf.shift(); }
   update(dt) {
     if (!this.buf.length) { this.idleUpdate(dt); return; } const last = this.buf[this.buf.length - 1];
     const k = clamp(dt * 8, 0, 1); const px = this.pos.x, pz = this.pos.z; this.pos.x = lerp(this.pos.x, last.x, k); this.pos.y = lerp(this.pos.y, last.y, k); this.pos.z = lerp(this.pos.z, last.z, k); this.yaw += wrapAngle(last.yaw - this.yaw) * k; this.crouch = last.crouch; this.running = last.run;
     this.speed = Math.hypot(this.pos.x - px, this.pos.z - pz) / Math.max(dt, 1e-4); this.noise = this.speed < 0.3 ? 0 : this.crouch ? 0.12 : this.running ? 1 : 0.35; if (this.speed > 0.3) this.lastMoveTime = this.game.time;
-    this.mesh.position.copy(this.pos); this.mesh.rotation.y = this.yaw; this.avatar.animate(dt, this.speed, this.crouch, this.game.time);
+    if ((last.d || '') !== (this.disguise ? this.disguise.kind : '')) this.setDisguise(last.d || null);
+    this.mesh.position.copy(this.pos); this.mesh.rotation.y = this.yaw; this.avatar.animate(dt, this.speed, this.crouch, this.game.time); this.animateDisguise(dt);
   }
 }
 /* Veicoli in movimento su percorsi ad anello, rispettano semafori e pedoni */
@@ -2686,6 +2735,8 @@ class Game {
     n.on('pos', (s, id) => { const c = g.remote.get(id); if (c && s) c.applyState(s); });
     n.on('bots', (snap) => { if (g.room.isHost) return; for (const id in snap) { const c = g.chars.find((x) => x.id === id); if (c && c.applyState) c.applyState(snap[id]); } });
     n.on('captureRequest', (p, from) => { if (!g.room.isHost) return; const h = g.chars.find((x) => x.id === from), t = g.chars.find((x) => x.id === p.target); if (h && t && g.validateCapture(h, t)) g.capture(h, t); });
+    n.on('unmaskRequest', (p, from) => { if (!g.room.isHost) return; const h = g.chars.find((x) => x.id === from), t = g.chars.find((x) => x.id === p.target); if (h && t && g.validateUnmask(h, t)) g.unmask(h, t); });
+    n.on('unmasked', (p) => { if (g.room.isHost) return; const h = g.chars.find((x) => x.id === p.hunter), t = g.chars.find((x) => x.id === p.prey); if (h && t) { if (!t.disguise) t.setDisguise('bidone'); g.unmask(h, t, true); } });
     n.on('captured', (p) => { if (g.room.isHost) return; const h = g.chars.find((x) => x.id === p.hunter), t = g.chars.find((x) => x.id === p.prey); if (h && t) g.capture(h, t, true); });
     n.on('door', (p) => { const d = g.city.doors.find((x) => x.id === p.id); if (d && d.open !== p.open) g.toggleDoor(d, p.by, true); });
     n.on('pin', (p) => { if (g.player.role === 'cacciatore') g.addPin(p.x, p.z, p.by, true); });
@@ -2731,7 +2782,7 @@ class Game {
     $('prep-overlay').hidden = this.player.role !== 'cacciatore'; $('prep-team').textContent = `Sei ${this.ui.roleLabel(this.player.role)}. Squadra: ` + this.chars.filter((c) => c.role === this.player.role && c !== this.player).map((c) => c.name + (c.isBot ? ' (bot)' : '')).join(', ');
     this.audio.jingle('start'); this.audio.say(this.player.role === 'preda' ? 'Fase di preparazione: nasconditi.' : 'Fase di preparazione: attendi il conto alla rovescia.');
     this.ui.notify(this.player.role === 'preda' ? `Sei una PREDA: hai ${info.prepSec} secondi per nasconderti.` : `Sei un CACCIATORE: le prede si stanno nascondendo.`, 'good', 6000);
-    document.querySelectorAll('.mbtn').forEach((b) => { if (b.dataset.act === 'mark') b.hidden = this.player.role !== 'cacciatore'; });
+    document.querySelectorAll('.mbtn').forEach((b) => { const a = b.dataset.act; if (a === 'mark' || a === 'unmask') b.hidden = this.player.role !== 'cacciatore'; if (a === 'morph') b.hidden = this.player.role !== 'preda'; });
   }
   applyRemotePhase(p) {
     if (p.phase === 'prep') { for (const m of this.room.members) m.role = p.roles[m.id] || null; const elapsed = (Date.now() - (p.startTs || Date.now())) / 1000; this.startMatch({ roles: p.roles, prepSec: Math.max(1, p.prepSec - elapsed), huntSec: p.huntSec, weather: p.weather, seed: p.seed, spawnMap: p.spawnMap || {} }); }
@@ -2745,9 +2796,43 @@ class Game {
     this.pingTimer = 0;
   }
   phaseRemaining() { return this.phase === 'prep' || this.phase === 'hunt' ? this.phaseEnd - this.time : 0; }
-  validateCapture(h, t) { if (this.phase !== 'hunt' || h.role !== 'cacciatore' || t.role !== 'preda' || t.captured || h.captured) return false; if (dist2(h.x, h.z, t.x, t.z) > (RULES.captureRange + 1.5) ** 2) return false; const a = h.headPos(), b = t.chestPos(); return this.coll.hasLineOfSight(a.x, a.y, a.z, b.x, b.y, b.z); }
+  /* ------------------------------ travestimento e smascheramento ------------------------------ */
+  pickDisguiseKind(c) { const q = this.city.quarterOf(c.x, c.z); return { 'centro storico': 'bidone', 'quartiere moderno': 'cono', 'zona residenziale': 'vaso', 'area industriale': 'cassa' }[q] || 'bidone'; }
+  setDisguise(c, kind, reason) {
+    const t = this.time;
+    if (kind) { c.setDisguise(kind); c.disguiseUntil = t + RULES.disguiseMaxSec; c.stats.morphs = (c.stats.morphs || 0) + 1; this.noiseEvents.push({ x: c.x, z: c.z, t, level: 0.4, team: 'preda', src: c.id }); if (dist2(c.x, c.z, this.player.x, this.player.z) < 30 * 30) this.audio.burst({ freq: 900, q: 2, dur: 0.25, vol: 0.15 }); if (c === this.player) this.ui.notify(`Ti sei trasformato in ${DISGUISE_NAMES[kind]}: resta immobile. Piedi, respiro e ciuffo restano visibili a chi guarda bene.`, 'good', 4500); }
+    else if (c.disguise) { c.setDisguise(null); c.disguiseCooldownUntil = t + RULES.disguiseCooldown; if (c === this.player) this.ui.notify(reason === 'mosso' ? 'Ti sei mosso: torni umano.' : reason === 'scaduto' ? 'Travestimento esaurito: torni umano.' : reason === 'smascherato' ? 'Smascherato! Resti bloccato per un attimo.' : 'Torni umano.', reason === 'smascherato' ? 'bad' : '', 3000); }
+  }
+  validateUnmask(h, t) { if (this.phase !== 'hunt' || h.role !== 'cacciatore' || t.role !== 'preda' || t.captured || !t.disguise) return false; if (dist2(h.x, h.z, t.x, t.z) > (RULES.captureRange + 1.5) ** 2) return false; const a = h.headPos(), b = t.chestPos(); return this.coll.hasLineOfSight(a.x, a.y, a.z, b.x, b.y, b.z); }
+  unmask(hunter, prey, fromNet = false) {
+    if (!prey.disguise || this.phase !== 'hunt') return;
+    this.setDisguise(prey, null, 'smascherato'); prey.stunUntil = this.time + RULES.unmaskStun; prey.disguiseCooldownUntil = this.time + RULES.unmaskLockout; hunter.stats.unmasks = (hunter.stats.unmasks || 0) + 1;
+    this.audio.ping(); this.ui.notify(`${hunter.name}${hunter.isBot ? ' (bot)' : ''} ha smascherato ${prey.name}${prey.isBot ? ' (bot)' : ''}!`, prey === this.player ? 'bad' : hunter === this.player ? 'good' : '', 3500);
+    if (prey === this.player) this.audio.say('Sei stato smascherato.');
+    this.noiseEvents.push({ x: prey.x, z: prey.z, t: this.time, level: 0.8, team: 'preda', src: prey.id });
+    if (this.room.isHost && !fromNet) this.net.send('unmasked', { hunter: hunter.id, prey: prey.id });
+  }
+  /* cacciatore umano: inquadra un oggetto sospetto (preda travestita o vero arredo) e accumula 2 secondi */
+  updateUnmask(dt) {
+    const p = this.player, cam = this.camera; const fwd = new THREE.Vector3(); cam.getWorldDirection(fwd); const head = p.headPos();
+    let key = null, obj = null, bestCos = 0.97;
+    for (const c of this.chars) { if (!c.disguise || c.captured || c.role !== 'preda' || !c.visible) continue; if (dist2(c.x, c.z, p.x, p.z) > RULES.captureRange ** 2) continue; const ch = c.chestPos(); const v = ch.clone().sub(cam.position); const d = v.length(); v.divideScalar(d); const cs = v.dot(fwd); if (cs < bestCos) continue; if (!this.coll.hasLineOfSight(head.x, head.y, head.z, ch.x, ch.y, ch.z)) continue; bestCos = cs; key = c.id; obj = c; }
+    if (!key) { const end = cam.position.clone().add(fwd.clone().multiplyScalar(RULES.captureRange + 3)); const tt = this.coll.raycast(cam.position.x, cam.position.y, cam.position.z, end.x, end.y, end.z); const b = this.coll.lastHitBox; if (tt < 1 && b && b.solid && !b.ramp && (b.maxX - b.minX) < 3 && (b.maxZ - b.minZ) < 3 && (b.maxY - b.minY) < 3 && b.tag !== 'door' && b.tag !== 'building') { key = 'box' + b.id; obj = b; } }
+    if (key !== p.unmaskKey) { p.unmaskKey = key; p.unmaskObj = obj; p.unmaskProgress = 0; }
+    if (key) p.unmaskProgress = Math.min(RULES.unmaskSeconds, (p.unmaskProgress || 0) + dt);
+  }
+  tryUnmask() {
+    const p = this.player; const K = this.input.keyLabel(this.input.bind.unmask);
+    if (this.time < (p.unmaskCooldown || 0)) return;
+    if (!p.unmaskKey) { this.ui.notify(`Inquadra un oggetto sospetto entro ${RULES.captureRange} m per ${RULES.unmaskSeconds} secondi, poi premi ${K}.`, 'warn', 2500); return; }
+    if (p.unmaskProgress < RULES.unmaskSeconds) { this.ui.notify(`Tieni inquadrato ancora ${(RULES.unmaskSeconds - p.unmaskProgress).toFixed(1)} s.`, 'warn', 1500); return; }
+    if (p.unmaskObj && p.unmaskObj.disguise) { if (this.room.isHost) this.unmask(p, p.unmaskObj); else this.net.send('unmaskRequest', { target: p.unmaskObj.id }); }
+    else { this.ui.notify('È solo un oggetto.', 'warn', 2000); p.stats.falseMarks++; this.audio.burst({ freq: 300, q: 1, dur: 0.15, vol: 0.15 }); }
+    p.unmaskProgress = 0; p.unmaskKey = null; p.unmaskObj = null; p.unmaskCooldown = this.time + 1.5;
+  }
+  validateCapture(h, t) { if (this.phase !== 'hunt' || h.role !== 'cacciatore' || t.role !== 'preda' || t.captured || h.captured || t.disguise) return false; if (dist2(h.x, h.z, t.x, t.z) > (RULES.captureRange + 1.5) ** 2) return false; const a = h.headPos(), b = t.chestPos(); return this.coll.hasLineOfSight(a.x, a.y, a.z, b.x, b.y, b.z); }
   capture(hunter, prey, fromNet = false) {
-    if (prey.captured || this.phase !== 'hunt') return; prey.captured = true; prey.spectating = true; hunter.stats.captures++; prey.stats.timeFree = Math.max(prey.stats.timeFree, this.time - this.phaseStart);
+    if (prey.captured || this.phase !== 'hunt') return; if (prey.disguise && !fromNet) return; if (prey.disguise) prey.setDisguise(null); prey.captured = true; prey.spectating = true; hunter.stats.captures++; prey.stats.timeFree = Math.max(prey.stats.timeFree, this.time - this.phaseStart);
     if (prey.ai && prey.ai.hideSpot) this.claimedSpots.delete(prey.ai.hideSpot);
     this.audio.jingle('capture'); this.ui.notify(`${hunter.name}${hunter.isBot ? ' (bot)' : ''} ha riconosciuto ${prey.name}${prey.isBot ? ' (bot)' : ''}.`, prey === this.player ? 'bad' : hunter === this.player ? 'good' : '', 4000);
     if (prey === this.player) { this.audio.say('Sei stato riconosciuto. Ora sei spettatore.'); this.spectateNext(); } else if (hunter === this.player) this.localStats.captures++;
@@ -2766,7 +2851,7 @@ class Game {
   abandonMatch() { if (this.phase === 'hunt' || this.phase === 'prep') { this.ui.notify('Hai abbandonato la partita.', 'warn'); } this.backToLobby(); }
   backToLobby() { this.clearMatch(); this.ui.setHud(false); this.input.enabled = false; this.input.releaseLock(); for (const m of this.room.members) if (!m.isBot && m.id !== this.room.hostId) m.ready = false; this.room.addChat('', 'Nuova sala: alla prossima partita i ruoli ruotano.', true); this.enterLobby(); this.syncRoomMeta(); }
   clearMatch() {
-    for (const c of this.chars) if (c !== this.player) c.dispose(); this.chars = []; this.remote.clear(); this.player.role = null; this.player.captured = false; this.player.spectating = false; this.player.setVisible(true); this.player.mesh.visible = true; this.player.marker.visible = false; this.spectTarget = null;
+    for (const c of this.chars) { if (c.disguise) c.setDisguise(null); c.stunUntil = 0; c.disguiseCooldownUntil = 0; if (c !== this.player) c.dispose(); } this.chars = []; this.player.unmaskKey = null; this.player.unmaskProgress = 0; this.remote.clear(); this.player.role = null; this.player.captured = false; this.player.spectating = false; this.player.setVisible(true); this.player.mesh.visible = true; this.player.marker.visible = false; this.spectTarget = null;
     this.setGates(false); $('prep-overlay').hidden = true; $('scoreboard').hidden = true; $('bigmap').hidden = true; this.ui.scoreVisible = false; this.sceneMgr.setRain(false); this.audio.setRain(false); this.audio.setTension(0); this.phase = this.room.code ? 'lobby' : 'home'; this.paused = false; $('modal-pause').hidden = true;
     for (const d of this.city.doors) if (d.open) { d.open = false; d.angle = 0; this.city._applyDoor(d); d.lastTouched = -1e9; d.by = null; }
     for (const c of this.city.clueObjects) { c.lastTouched = -1e9; c.by = null; }
@@ -2826,7 +2911,7 @@ class Game {
     { t: 'Visuale', x: this.mobile ? 'Trascina il dito sulla metà destra dello schermo per guardarti attorno.' : 'Muovi il mouse per orientare la visuale (clicca sul gioco se il puntatore non è catturato).', done: () => this.tutorial.look > 1.5 },
     { t: 'Corsa ed energia', x: `${this.mobile ? 'Tocca «Corri»' : 'Tieni premuto ' + k('run')} per correre: consumi energia e fai rumore. L'energia si ricarica camminando o stando fermo. Con ${this.mobile ? '«Abbassati»' : k('crouch')} ti accovacci: più lento, più silenzioso.`, done: () => this.player.stamina < 85 },
     { t: 'Interazioni', x: `Avvicinati alla porta del bar e premi ${this.mobile ? '«Usa»' : k('interact')} per aprirla. Le porte aperte restano un indizio per i cacciatori. Nel quartiere moderno c'è anche un ascensore.`, done: () => this.tutorial.doorOpened },
-    { t: 'Prede e cacciatori', x: 'Le PREDE (●) si nascondono, si confondono fra i passanti e possono usare una sola esca sonora. I CACCIATORI (◆) esplorano, ascoltano rumori, esaminano indizi e possono attivare una scansione con lunga ricarica.', done: null },
+    { t: 'Prede e cacciatori', x: `Le PREDE (●) si nascondono, si confondono fra i passanti, hanno una sola esca sonora e, da ferme, possono trasformarsi in un oggetto con ${k('morph')} (bidone, cassa, cono o pianta): piedi, respiro e ciuffo restano però visibili. I CACCIATORI (◆) esplorano, ascoltano rumori, esaminano indizi, attivano una scansione con lunga ricarica e smascherano gli oggetti sospetti inquadrandoli 2 secondi e premendo ${k('unmask')}.`, done: null },
     { t: 'Sistema di cattura', x: `Il cacciatore deve stare entro ${RULES.captureRange} metri, con visuale libera, e tenere la preda al centro del mirino per ${RULES.captureSeconds} secondi (${this.mobile ? 'pulsante «Marca»' : 'tieni premuto il clic sinistro'}). Se la visuale si interrompe, il progresso si azzera. Marcare un passante fa perdere tempo.`, done: null },
     { t: 'Minimappa e mappa dettagliata', x: `In alto a destra vedi la minimappa: mostra solo te, i compagni e, per brevi istanti, zone approssimative segnalate dalle regole. Con ${k('map')} o il pulsante «Mappa» apri la mappa dettagliata della città; con ${k('view')} o «Visuale» cambi inquadratura (terza persona, dall'alto, prima persona); «? Comandi» riapre questa guida. Mai la posizione esatta degli avversari.`, done: null },
     { t: 'Condizioni di vittoria', x: 'Le prede vincono se almeno una resta libera allo scadere del tempo. I cacciatori vincono se le riconoscono tutte. Alla partita successiva i ruoli ruotano. Buona caccia!', done: null }
@@ -2881,6 +2966,9 @@ class Game {
       const look0 = inp.lookDX; p.update(dt, inp, !lockedInPrep); if (this.tutorial) this.tutorial.look += Math.abs(look0);
       if (inp.pressed('interact')) { const it = this.nearestInteractable(p); this.interact(p); if (this.tutorial && it && it.kind === 'door') this.tutorial.doorOpened = true; }
       if (inp.pressed('ability')) { if (p.role === 'preda') { if (p.decoyUsed) this.ui.notify('Hai già usato la tua unica esca.', 'warn', 1500); else this.useDecoy(p); } else this.useScan(p); }
+      if (inp.pressed('morph') && p.role === 'preda' && (this.phase === 'hunt' || this.phase === 'prep')) { if (p.disguise) this.setDisguise(p, null, 'volontario'); else if (t < (p.disguiseCooldownUntil || 0)) this.ui.notify(`Travestimento in ricarica: ${Math.ceil(p.disguiseCooldownUntil - t)} s.`, 'warn', 1500); else if (p.speed > 0.6) this.ui.notify('Fermati prima di trasformarti.', 'warn', 1500); else this.setDisguise(p, this.pickDisguiseKind(p)); }
+      if (inp.pressed('unmask') && p.role === 'cacciatore') this.tryUnmask();
+      if (this.phase === 'hunt' && p.role === 'cacciatore') this.updateUnmask(dt); else { p.unmaskKey = null; p.unmaskProgress = 0; }
       if (inp.pressed('pin') && p.role === 'cacciatore') { const yaw = p.camYaw; this.addPin(clamp(p.x + Math.sin(yaw) * 6, -150, 150), clamp(p.z + Math.cos(yaw) * 6, -150, 150), p.id); }
       const it = this.nearestInteractable(p); this.interactHint = it ? (it.kind === 'door' ? `${inp.keyLabel(inp.bind.interact)}: ${it.obj.open ? 'chiudi' : 'apri'} ${it.obj.label.toLowerCase()}` : it.kind === 'elevator' ? `${inp.keyLabel(inp.bind.interact)}: ascensore ${Math.abs(it.obj.y - it.obj.y0) < 0.1 ? 'sali' : 'scendi'}` : `${inp.keyLabel(inp.bind.interact)}: esamina ${it.obj.kind}`) : '';
       if (this.phase === 'hunt' && p.role === 'cacciatore') this.updateMarking(dt); else { p.markProgress = 0; p.markTarget = null; }
@@ -2892,6 +2980,7 @@ class Game {
     this.noiseEvents = this.noiseEvents.filter((n) => t - n.t < 4); this.zoneHints = this.zoneHints.filter((h) => t - h.t < 10); this.pins = this.pins.filter((pin) => t - pin.t < 120);
     // indicatori di squadra: visibili solo ai compagni e solo da vicino
     for (const c of this.chars) { if (c === p) continue; c.marker.visible = !!c.role && c.role === p.role && !c.captured && dist2(c.x, c.z, p.x, p.z) < 18 * 18; if (c.marker.visible) c.marker.rotation.y = t * 2; }
+    for (const c of this.chars) { if (c.disguise && !c.isRemote && !(c.isBot && !this.room.isHost) && t > (c.disguiseUntil || 0)) this.setDisguise(c, null, 'scaduto'); }
     if (this.phase === 'hunt') this.updateHuntRules(dt);
     if (this.phase === 'prep' && t >= this.phaseEnd && this.room.isHost) this.beginHunt();
     if (this.phase === 'prep') { $('prep-count').textContent = Math.ceil(this.phaseEnd - t); }
@@ -2923,7 +3012,7 @@ class Game {
     const p = this.player; const cam = this.camera; const fwd = new THREE.Vector3(); cam.getWorldDirection(fwd); const head = p.headPos();
     let best = null, bestCos = RULES.captureFovCos;
     for (const c of this.allChars()) {
-      if (c === p || !c.visible || c.captured || c.role === 'cacciatore') continue; if (dist2(c.x, c.z, p.x, p.z) > RULES.captureRange ** 2) continue;
+      if (c === p || !c.visible || c.captured || c.role === 'cacciatore' || c.disguise) continue; if (dist2(c.x, c.z, p.x, p.z) > RULES.captureRange ** 2) continue;
       const ch = c.chestPos(); const v = ch.clone().sub(cam.position); const d = v.length(); v.divideScalar(d); const cs = v.dot(fwd); if (cs < bestCos) continue;
       if (!this.coll.hasLineOfSight(head.x, head.y, head.z, ch.x, ch.y, ch.z)) continue; bestCos = cs; best = c;
     }
@@ -2942,9 +3031,9 @@ class Game {
   orbitCamera(dt) { const c = this.city.piazzaCenter; const a = this.time * 0.08; const target = new THREE.Vector3(c.x + Math.cos(a) * 26, 9, c.z + Math.sin(a) * 26); this.camera.position.lerp(target, clamp(dt * 2, 0, 1)); this.camera.lookAt(c.x, 2, c.z); }
   /* sincronizzazione di rete: posizioni a frequenza limitata; l'host pubblica i bot */
   netTick(dt) {
-    const p = this.player; this.net.sendPos({ x: +p.x.toFixed(2), y: +p.pos.y.toFixed(2), z: +p.z.toFixed(2), yaw: +p.yaw.toFixed(2), c: p.crouch ? 1 : 0, r: p.running ? 1 : 0 });
+    const p = this.player; this.net.sendPos({ x: +p.x.toFixed(2), y: +p.pos.y.toFixed(2), z: +p.z.toFixed(2), yaw: +p.yaw.toFixed(2), c: p.crouch ? 1 : 0, r: p.running ? 1 : 0, d: p.disguise ? p.disguise.kind : '' });
     this.pingTimer = (this.pingTimer || 0) + dt; if (this.pingTimer > 5) { this.pingTimer = 0; if (!this.room.isHost) this.net.send('ping', { ts: Date.now() }); }
-    if (this.room.isHost) { this.botSyncT = (this.botSyncT || 0) + dt; if (this.botSyncT > 1 / (MULTIPLAYER_CONFIG.positionRateHz || 10)) { this.botSyncT = 0; const snap = {}; for (const c of this.chars) if (c.isBot) snap[c.id] = { x: +c.x.toFixed(2), y: +c.pos.y.toFixed(2), z: +c.z.toFixed(2), yaw: +c.yaw.toFixed(2), c: c.crouch ? 1 : 0, r: c.running ? 1 : 0 }; this.net.sendBots(snap); } }
+    if (this.room.isHost) { this.botSyncT = (this.botSyncT || 0) + dt; if (this.botSyncT > 1 / (MULTIPLAYER_CONFIG.positionRateHz || 10)) { this.botSyncT = 0; const snap = {}; for (const c of this.chars) if (c.isBot) snap[c.id] = { x: +c.x.toFixed(2), y: +c.pos.y.toFixed(2), z: +c.z.toFixed(2), yaw: +c.yaw.toFixed(2), c: c.crouch ? 1 : 0, r: c.running ? 1 : 0, d: c.disguise ? c.disguise.kind : '' }; this.net.sendBots(snap); } }
     // coerenza: un giocatore remoto che si teletrasporta viene riportato all'ultima posizione plausibile
     for (const [, c] of this.remote) { const last = c.buf[c.buf.length - 1]; const prev = c.buf[c.buf.length - 2]; if (last && prev) { const d = Math.hypot(last.x - prev.x, last.z - prev.z); const maxD = RULES.runSpeed * Math.max(0.05, last.t - prev.t) * 2.5 + 0.5; if (d > maxD) { c.buf.pop(); } } }
   }
@@ -2952,7 +3041,7 @@ class Game {
 /* Bot: stato remoto applicabile quando non si è host */
 Bot.prototype.applyState = function (s) { if (!this._rbuf) this._rbuf = []; this._rbuf.push(s); if (this._rbuf.length > 4) this._rbuf.shift(); this._remoteDriven = true; };
 const _botUpdate = Bot.prototype.update;
-Bot.prototype.update = function (dt) { if (this._remoteDriven && !this.game.room.isHost) { const s = this._rbuf[this._rbuf.length - 1]; if (s) { const k = clamp(dt * 8, 0, 1); const px = this.pos.x, pz = this.pos.z; this.pos.x = lerp(this.pos.x, s.x, k); this.pos.y = lerp(this.pos.y, s.y, k); this.pos.z = lerp(this.pos.z, s.z, k); this.yaw += wrapAngle(s.yaw - this.yaw) * k; this.crouch = !!s.c; this.speed = Math.hypot(this.pos.x - px, this.pos.z - pz) / Math.max(dt, 1e-4); this.mesh.position.copy(this.pos); this.mesh.rotation.y = this.yaw; this.avatar.animate(dt, this.speed, this.crouch, this.game.time); } return; } _botUpdate.call(this, dt); };
+Bot.prototype.update = function (dt) { if (this._remoteDriven && !this.game.room.isHost) { const s = this._rbuf[this._rbuf.length - 1]; if (s) { const k = clamp(dt * 8, 0, 1); const px = this.pos.x, pz = this.pos.z; this.pos.x = lerp(this.pos.x, s.x, k); this.pos.y = lerp(this.pos.y, s.y, k); this.pos.z = lerp(this.pos.z, s.z, k); this.yaw += wrapAngle(s.yaw - this.yaw) * k; this.crouch = !!s.c; this.speed = Math.hypot(this.pos.x - px, this.pos.z - pz) / Math.max(dt, 1e-4); if ((s.d || '') !== (this.disguise ? this.disguise.kind : '')) this.setDisguise(s.d || null); this.mesh.position.copy(this.pos); this.mesh.rotation.y = this.yaw; this.avatar.animate(dt, this.speed, this.crouch, this.game.time); this.animateDisguise(dt); } return; } _botUpdate.call(this, dt); };
 
 /* ------------------------------ avvio ------------------------------ */
 window.addEventListener('DOMContentLoaded', () => {
