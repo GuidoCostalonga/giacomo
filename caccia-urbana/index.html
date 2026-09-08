@@ -108,6 +108,9 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;min-height:36px
 .chat .in{display:flex;gap:6px;padding:6px;border-top:1px solid var(--line)}
 .chat .in input{min-height:38px}
 .foot{font-size:.8em;color:var(--muted);margin-top:12px;line-height:1.4}
+#tasto-home{display:inline-block;margin-top:16px;color:var(--muted);text-decoration:none;font-size:.85em;
+  border:1px solid var(--line);border-radius:999px;padding:7px 14px}
+#tasto-home:hover{color:var(--text);border-color:var(--accent)}
 #loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:50;gap:14px}
 #loading .bar{width:min(420px,80vw);height:12px;background:#222a37;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
 #loading .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .2s}
@@ -294,6 +297,7 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;min-height:36px
         <div class="small" id="home-stats"></div>
       </div>
     </div>
+    <a id="tasto-home" href="/">&#8962; Torna alla pagina principale</a>
     <div class="foot">Gioco senza armi né violenza. Non vengono raccolti dati personali: nome temporaneo, avatar e impostazioni restano solo sul tuo dispositivo. In modalità dimostrativa giochi con utenti virtuali contrassegnati da <span class="tag bot">bot</span>.</div>
   </div>
 </div>
