@@ -382,7 +382,7 @@ label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;min-height:36px
     <div class="box"><div class="lbl"><span>Rumore</span><span id="hud-noise-t">silenzio</span></div><div class="meter noise" id="hud-noise"><i style="width:0"></i></div></div>
     <div class="box"><div class="lbl"><span id="hud-ability-name">Abilità (Q)</span><span id="hud-ability-t"></span></div><div class="meter" id="hud-ability"><i></i></div></div>
     <div class="box" id="hud-morph-box"><div class="lbl"><span id="hud-morph-name">Travestimento (T)</span><span id="hud-morph-t"></span></div><div class="meter" id="hud-morph"><i></i></div></div>
-    <div class="hudbtns"><button class="btn" id="hb-help" title="Comandi, regole e accessibilità">? Comandi</button><button class="btn" id="hb-map" title="Mappa dettagliata (M)">Mappa</button><button class="btn" id="hb-view" title="Cambia tipo di visuale (V)">Visuale</button></div>
+    <div class="hudbtns"><button class="btn" id="hb-help" title="Comandi, regole e accessibilità">? Comandi</button><button class="btn" id="hb-map" title="Mappa dettagliata (M)">Mappa</button><button class="btn" id="hb-view" title="Cambia tipo di visuale (V)">Visuale</button><a class="btn" id="tasto-home-hud" href="/" title="Torna alla pagina principale del sito">&#8962; Home</a></div>
   </div>
   <div class="tr">
     <canvas id="minimap" width="256" height="256"></canvas>
@@ -3052,6 +3052,16 @@ window.addEventListener('DOMContentLoaded', () => {
   if (typeof THREE === 'undefined') { $('loading').hidden = true; $('nowebgl').hidden = false; $('nowebgl').querySelector('.sub').textContent = 'Impossibile caricare la libreria grafica Three.js dalla CDN. Controlla la connessione e ricarica la pagina.'; return; }
   window.game = new Game(); window.game.init().catch((e) => { console.error(e); $('loadmsg').textContent = 'Errore di avvio: ' + e.message; });
 });
+</script>
+<script>
+/* uscire dalla partita per tornare al sito: si chiede conferma, perché la partita in corso si perde */
+(function(){
+  const h=document.getElementById('tasto-home-hud');
+  if(!h) return;
+  h.addEventListener('click', e => {
+    if(!confirm('Vuoi lasciare la partita e tornare alla pagina principale del sito?')) e.preventDefault();
+  });
+})();
 </script>
 </body>
 </html>
