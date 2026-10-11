@@ -1,0 +1,23 @@
+{% if page.url == "/" %}
+<meta property="og:image:type" content="image/jpeg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Guido Costalonga",
+      "item": "https://costalonga.org/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "giacomo",
+      "item": "https://costalonga.org/giacomo/"
+    }
+  ]
+}
+</script>
+{% endif %}

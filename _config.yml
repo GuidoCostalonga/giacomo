@@ -1,0 +1,20 @@
+# Impostazioni di GitHub Pages (Jekyll) per la pagina principale https://costalonga.org/giacomo/
+# Le cartelle dei giochi contengono già il proprio index.html e vengono pubblicate così come sono.
+# Il titolo del sito serve solo come og:site_name: _layouts/default.html non lo mostra nella pagina.
+title: Guido Costalonga
+lang: it
+locale: it_IT
+url: https://costalonga.org
+baseurl: /giacomo
+theme: jekyll-theme-primer
+defaults:
+  - scope:
+      path: README.md
+    values:
+      title: "giacomo: giochi per browser"
+      description: "Raccolta di giochi per browser: Caccia urbana, sfida 3D a più giocatori senza violenza, e Città Libera, città 3D da esplorare a piedi o con veicoli."
+      image:
+        path: https://costalonga.org/anteprima.jpg
+        width: 1200
+        height: 630
+        alt: "Guido Costalonga, assessore alla Sicurezza, Protezione Civile, Patrimonio e Mobilità Sostenibile del Comune di Roveredo in Piano"
